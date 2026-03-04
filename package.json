@@ -1,0 +1,21 @@
+{
+  "name": "mcp-market",
+  "version": "1.0.0",
+  "description": "企业内部 MCP 市场平台",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:mcp-server": "cd examples/mcp-server && source .venv/bin/activate && python -m src.server",
+    "dev:agent": "cd examples/agent-demo && source venv/bin/activate && python -m src.main",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend"
+  },
+  "keywords": ["mcp", "market", "model-context-protocol"],
+  "author": "",
+  "license": "MIT"
+}

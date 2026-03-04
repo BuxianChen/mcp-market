@@ -1,0 +1,15 @@
+[project]
+name = "mcp-server-example"
+version = "1.0.0"
+description = "Example MCP Server with tools"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
