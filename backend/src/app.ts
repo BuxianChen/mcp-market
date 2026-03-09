@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import mcpRoutes from './routes/mcp';
+import proxyRoutes from './routes/proxy';
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 
 // 路由
 app.use('/api', mcpRoutes);
+app.use('/', proxyRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {

@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { McpCard } from './McpCard';
 import { AddMcpForm } from './AddMcpForm';
 import { TestMcpModal } from './TestMcpModal';
+import { InteractiveTester } from './InteractiveTester';
+import { TokenManagement } from './TokenManagement';
+import { AccessLogs } from './AccessLogs';
+import { HttpMappingConfig } from './HttpMappingConfig';
 import { mcpApi } from '../api/mcp';
 import type { McpServer, CreateMcpServerInput, McpTestResult } from '../types/mcp';
 
@@ -12,6 +16,10 @@ export const McpList: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMcp, setEditingMcp] = useState<McpServer | null>(null);
   const [testResult, setTestResult] = useState<McpTestResult | null>(null);
+  const [interactiveTestMcp, setInteractiveTestMcp] = useState<McpServer | null>(null);
+  const [tokenManagementMcp, setTokenManagementMcp] = useState<McpServer | null>(null);
+  const [accessLogsMcp, setAccessLogsMcp] = useState<McpServer | null>(null);
+  const [httpMappingMcp, setHttpMappingMcp] = useState<McpServer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const loadMcps = async () => {
@@ -75,6 +83,22 @@ export const McpList: React.FC = () => {
     }
   };
 
+  const handleInteractiveTest = (mcp: McpServer) => {
+    setInteractiveTestMcp(mcp);
+  };
+
+  const handleTokenManagement = (mcp: McpServer) => {
+    setTokenManagementMcp(mcp);
+  };
+
+  const handleAccessLogs = (mcp: McpServer) => {
+    setAccessLogsMcp(mcp);
+  };
+
+  const handleHttpMapping = (mcp: McpServer) => {
+    setHttpMappingMcp(mcp);
+  };
+
   const filteredMcps = mcps.filter(mcp =>
     mcp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (mcp.description && mcp.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -132,6 +156,10 @@ export const McpList: React.FC = () => {
                 key={mcp.id}
                 mcp={mcp}
                 onTest={handleTest}
+                onInteractiveTest={handleInteractiveTest}
+                onTokenManagement={handleTokenManagement}
+                onAccessLogs={handleAccessLogs}
+                onHttpMapping={handleHttpMapping}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -155,6 +183,34 @@ export const McpList: React.FC = () => {
         <TestMcpModal
           result={testResult}
           onClose={() => setTestResult(null)}
+        />
+      )}
+
+      {interactiveTestMcp && (
+        <InteractiveTester
+          server={interactiveTestMcp}
+          onClose={() => setInteractiveTestMcp(null)}
+        />
+      )}
+
+      {tokenManagementMcp && (
+        <TokenManagement
+          server={tokenManagementMcp}
+          onClose={() => setTokenManagementMcp(null)}
+        />
+      )}
+
+      {accessLogsMcp && (
+        <AccessLogs
+          server={accessLogsMcp}
+          onClose={() => setAccessLogsMcp(null)}
+        />
+      )}
+
+      {httpMappingMcp && (
+        <HttpMappingConfig
+          server={httpMappingMcp}
+          onClose={() => setHttpMappingMcp(null)}
         />
       )}
     </div>

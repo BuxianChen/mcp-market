@@ -4,11 +4,15 @@ import type { McpServer } from '../types/mcp';
 interface McpCardProps {
   mcp: McpServer;
   onTest: (id: number) => void;
+  onInteractiveTest: (mcp: McpServer) => void;
+  onTokenManagement: (mcp: McpServer) => void;
+  onAccessLogs: (mcp: McpServer) => void;
+  onHttpMapping: (mcp: McpServer) => void;
   onEdit: (mcp: McpServer) => void;
   onDelete: (id: number) => void;
 }
 
-export const McpCard: React.FC<McpCardProps> = ({ mcp, onTest, onEdit, onDelete }) => {
+export const McpCard: React.FC<McpCardProps> = ({ mcp, onTest, onInteractiveTest, onTokenManagement, onAccessLogs, onHttpMapping, onEdit, onDelete }) => {
   const getConnectionTypeColor = (type: string) => {
     switch (type) {
       case 'http': return 'bg-blue-100 text-blue-800';
@@ -47,25 +51,59 @@ export const McpCard: React.FC<McpCardProps> = ({ mcp, onTest, onEdit, onDelete 
         创建时间: {new Date(mcp.created_at).toLocaleString('zh-CN')}
       </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => onTest(mcp.id)}
-          className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm"
-        >
-          测试连接
-        </button>
-        <button
-          onClick={() => onEdit(mcp)}
-          className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm"
-        >
-          编辑
-        </button>
-        <button
-          onClick={() => onDelete(mcp.id)}
-          className="flex-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm"
-        >
-          删除
-        </button>
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
+          <button
+            onClick={() => onTest(mcp.id)}
+            className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm"
+          >
+            测试连接
+          </button>
+          <button
+            onClick={() => onInteractiveTest(mcp)}
+            className="flex-1 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm"
+          >
+            交互式测试
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onTokenManagement(mcp)}
+            className="flex-1 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors text-sm"
+          >
+            Token 管理
+          </button>
+          <button
+            onClick={() => onAccessLogs(mcp)}
+            className="flex-1 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-colors text-sm"
+          >
+            访问日志
+          </button>
+        </div>
+        {mcp.connection_type === 'http' && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => onHttpMapping(mcp)}
+              className="flex-1 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors text-sm"
+            >
+              配置映射
+            </button>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEdit(mcp)}
+            className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm"
+          >
+            编辑
+          </button>
+          <button
+            onClick={() => onDelete(mcp.id)}
+            className="flex-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm"
+          >
+            删除
+          </button>
+        </div>
       </div>
     </div>
   );

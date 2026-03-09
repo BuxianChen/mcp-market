@@ -45,6 +45,10 @@ export class McpTestService {
       // 获取服务器信息
       const serverInfo = await client.getServerVersion();
 
+      if (!serverInfo) {
+        throw new Error('Failed to get server version');
+      }
+
       // 获取能力
       const capabilities: McpTestResult['capabilities'] = {};
 
@@ -52,7 +56,8 @@ export class McpTestService {
         const tools = await client.listTools();
         capabilities.tools = tools.tools.map(tool => ({
           name: tool.name,
-          description: tool.description
+          description: tool.description,
+          inputSchema: tool.inputSchema
         }));
       } catch (e) {
         // 如果不支持 tools，忽略错误
@@ -73,7 +78,8 @@ export class McpTestService {
         const prompts = await client.listPrompts();
         capabilities.prompts = prompts.prompts.map(prompt => ({
           name: prompt.name,
-          description: prompt.description
+          description: prompt.description,
+          arguments: prompt.arguments
         }));
       } catch (e) {
         // 如果不支持 prompts，忽略错误
@@ -87,7 +93,7 @@ export class McpTestService {
         serverInfo: {
           name: serverInfo.name,
           version: serverInfo.version,
-          protocolVersion: serverInfo.protocolVersion
+          protocolVersion: '2024-11-05' // MCP protocol version
         },
         capabilities
       };

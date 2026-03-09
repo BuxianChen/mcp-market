@@ -60,9 +60,45 @@ export interface McpTestResult {
     protocolVersion?: string;
   };
   capabilities?: {
-    tools?: Array<{ name: string; description?: string }>;
+    tools?: Array<{ name: string; description?: string; inputSchema?: any }>;
     resources?: Array<{ uri: string; name?: string; description?: string }>;
-    prompts?: Array<{ name: string; description?: string }>;
+    prompts?: Array<{ name: string; description?: string; arguments?: any[] }>;
   };
+  error?: string;
+}
+
+// Session related types
+export interface SessionInfo {
+  id: string;
+  serverId: number;
+  createdAt: string;
+  lastActivityAt: string;
+}
+
+export interface ToolCallRequest {
+  toolName: string;
+  arguments: Record<string, any>;
+}
+
+export interface ToolCallResult {
+  success: boolean;
+  content?: any;
+  error?: string;
+}
+
+export interface ResourceReadResult {
+  success: boolean;
+  contents?: any[];
+  error?: string;
+}
+
+export interface PromptGetRequest {
+  promptName: string;
+  arguments?: Record<string, any>;
+}
+
+export interface PromptGetResult {
+  success: boolean;
+  messages?: any[];
   error?: string;
 }

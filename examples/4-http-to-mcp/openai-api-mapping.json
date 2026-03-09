@@ -1,0 +1,200 @@
+{
+  "name": "OpenAI API Mappings",
+  "description": "OpenAI API 的 HTTP 转 MCP 配置示例",
+  "baseUrl": "https://api.openai.com/v1",
+  "tools": [
+    {
+      "toolName": "chat_completion",
+      "description": "调用 OpenAI Chat Completion API",
+      "httpMethod": "POST",
+      "httpPath": "/chat/completions",
+      "parameters": {
+        "model": {
+          "type": "string",
+          "description": "模型名称，如: gpt-4, gpt-3.5-turbo",
+          "location": "body",
+          "required": true
+        },
+        "messages": {
+          "type": "array",
+          "description": "对话消息列表",
+          "location": "body",
+          "required": true
+        },
+        "temperature": {
+          "type": "number",
+          "description": "温度参数 (0-2)，控制随机性",
+          "location": "body",
+          "required": false
+        },
+        "max_tokens": {
+          "type": "number",
+          "description": "最大生成 token 数",
+          "location": "body",
+          "required": false
+        }
+      },
+      "responseMapping": {
+        "id": "$.id",
+        "model": "$.model",
+        "content": "$.choices[0].message.content",
+        "finish_reason": "$.choices[0].finish_reason",
+        "usage": "$.usage"
+      }
+    },
+    {
+      "toolName": "list_models",
+      "description": "列出所有可用的模型",
+      "httpMethod": "GET",
+      "httpPath": "/models",
+      "parameters": {},
+      "responseMapping": {
+        "models": "$.data[*].{id: id, created: created, owned_by: owned_by}"
+      }
+    },
+    {
+      "toolName": "create_embedding",
+      "description": "创建文本嵌入向量",
+      "httpMethod": "POST",
+      "httpPath": "/embeddings",
+      "parameters": {
+        "model": {
+          "type": "string",
+          "description": "嵌入模型，如: text-embedding-ada-002",
+          "location": "body",
+          "required": true
+        },
+        "input": {
+          "type": "string",
+          "description": "要嵌入的文本",
+          "location": "body",
+          "required": true
+        }
+      },
+      "responseMapping": {
+        "embedding": "$.data[0].embedding",
+        "model": "$.model",
+        "usage": "$.usage"
+      }
+    },
+    {
+      "toolName": "create_image",
+      "description": "使用 DALL-E 生成图片",
+      "httpMethod": "POST",
+      "httpPath": "/images/generations",
+      "parameters": {
+        "prompt": {
+          "type": "string",
+          "description": "图片描述提示词",
+          "location": "body",
+          "required": true
+        },
+        "n": {
+          "type": "number",
+          "description": "生成图片数量 (1-10)",
+          "location": "body",
+          "required": false
+        },
+        "size": {
+          "type": "string",
+          "description": "图片尺寸: 256x256, 512x512, 1024x1024",
+          "location": "body",
+          "required": false
+        }
+      },
+      "responseMapping": {
+        "images": "$.data[*].url",
+        "created": "$.created"
+      }
+    },
+    {
+      "toolName": "create_moderation",
+      "description": "检查文本内容是否违规",
+      "httpMethod": "POST",
+      "httpPath": "/moderations",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "description": "要检查的文本",
+          "location": "body",
+          "required": true
+        }
+      },
+      "responseMapping": {
+        "flagged": "$.results[0].flagged",
+        "categories": "$.results[0].categories",
+        "category_scores": "$.results[0].category_scores"
+      }
+    }
+  ],
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer YOUR_OPENAI_API_KEY"
+  },
+  "notes": [
+    "需要有效的 OpenAI API Key",
+    "API Key 应该通过 Authorization header 传递",
+    "注意 API 调用会产生费用",
+    "建议设置 max_tokens 限制以控制成本"
+  ],
+  "usage": {
+    "setup": [
+      "1. 获取 OpenAI API Key: https://platform.openai.com/api-keys",
+      "2. 在 MCP Market 中创建 HTTP 类型的服务器",
+      "3. URL 填写: https://api.openai.com/v1",
+      "4. 配置 Headers，添加: Authorization: Bearer YOUR_API_KEY",
+      "5. 点击'配置映射'按钮，逐个添加上述工具配置"
+    ],
+    "examples": [
+      {
+        "tool": "chat_completion",
+        "arguments": {
+          "model": "gpt-3.5-turbo",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Hello, how are you?"
+            }
+          ],
+          "temperature": 0.7,
+          "max_tokens": 100
+        },
+        "description": "简单的对话补全"
+      },
+      {
+        "tool": "list_models",
+        "arguments": {},
+        "description": "列出所有可用模型"
+      },
+      {
+        "tool": "create_embedding",
+        "arguments": {
+          "model": "text-embedding-ada-002",
+          "input": "The quick brown fox jumps over the lazy dog"
+        },
+        "description": "创建文本嵌入向量"
+      },
+      {
+        "tool": "create_image",
+        "arguments": {
+          "prompt": "A beautiful sunset over the ocean",
+          "n": 1,
+          "size": "512x512"
+        },
+        "description": "生成图片"
+      },
+      {
+        "tool": "create_moderation",
+        "arguments": {
+          "input": "I want to hurt someone"
+        },
+        "description": "内容审核"
+      }
+    ]
+  },
+  "security": {
+    "api_key_storage": "建议将 API Key 存储在环境变量或密钥管理服务中",
+    "rate_limiting": "OpenAI 有速率限制，注意控制请求频率",
+    "cost_control": "设置 max_tokens 和使用较小的模型以控制成本"
+  }
+}

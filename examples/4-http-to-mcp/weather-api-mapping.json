@@ -1,0 +1,102 @@
+{
+  "name": "Weather API Mappings",
+  "description": "天气 API 的 HTTP 转 MCP 配置示例",
+  "baseUrl": "http://localhost:5000",
+  "tools": [
+    {
+      "toolName": "get_weather",
+      "description": "获取指定城市的天气信息",
+      "httpMethod": "GET",
+      "httpPath": "/api/weather/{city}",
+      "parameters": {
+        "city": {
+          "type": "string",
+          "description": "城市名称（英文，如: beijing, shanghai）",
+          "location": "path",
+          "required": true
+        }
+      },
+      "responseMapping": {
+        "success": "$.success",
+        "city": "$.data.city",
+        "temperature": "$.data.temperature",
+        "condition": "$.data.condition",
+        "humidity": "$.data.humidity",
+        "wind_speed": "$.data.wind_speed",
+        "last_updated": "$.data.last_updated"
+      }
+    },
+    {
+      "toolName": "list_cities",
+      "description": "列出所有支持的城市",
+      "httpMethod": "GET",
+      "httpPath": "/api/cities",
+      "parameters": {},
+      "responseMapping": {
+        "cities": "$.data.cities",
+        "total": "$.data.total"
+      }
+    },
+    {
+      "toolName": "get_weather_batch",
+      "description": "批量获取多个城市的天气信息",
+      "httpMethod": "POST",
+      "httpPath": "/api/weather/batch",
+      "parameters": {
+        "cities": {
+          "type": "array",
+          "description": "城市名称列表，例如: [\"beijing\", \"shanghai\"]",
+          "location": "body",
+          "required": true
+        }
+      },
+      "responseMapping": {
+        "results": "$.data.results",
+        "total": "$.data.total"
+      }
+    }
+  ],
+  "usage": {
+    "setup": [
+      "1. 启动天气 API 服务器: cd examples/1-mcp-servers/http-api/weather-api && python server.py",
+      "2. 在 MCP Market 中创建 HTTP 类型的服务器，URL 填写: http://localhost:5000",
+      "3. 点击'配置映射'按钮，逐个添加上述工具配置",
+      "4. 使用'交互式测试'功能测试工具"
+    ],
+    "examples": [
+      {
+        "tool": "get_weather",
+        "arguments": {
+          "city": "beijing"
+        },
+        "expected_result": {
+          "success": true,
+          "city": "Beijing",
+          "temperature": 15,
+          "condition": "Sunny"
+        }
+      },
+      {
+        "tool": "list_cities",
+        "arguments": {},
+        "expected_result": {
+          "cities": ["Beijing", "Shanghai", "Guangzhou", "Shenzhen"],
+          "total": 4
+        }
+      },
+      {
+        "tool": "get_weather_batch",
+        "arguments": {
+          "cities": ["beijing", "shanghai"]
+        },
+        "expected_result": {
+          "results": [
+            {"city": "beijing", "success": true},
+            {"city": "shanghai", "success": true}
+          ],
+          "total": 2
+        }
+      }
+    ]
+  }
+}

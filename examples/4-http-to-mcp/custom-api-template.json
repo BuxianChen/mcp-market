@@ -1,0 +1,297 @@
+{
+  "name": "Custom API Template",
+  "description": "自定义 HTTP API 转 MCP 的配置模板",
+  "baseUrl": "https://your-api-domain.com",
+  "tools": [
+    {
+      "toolName": "example_get_request",
+      "description": "GET 请求示例 - 获取资源",
+      "httpMethod": "GET",
+      "httpPath": "/api/resource/{id}",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "description": "资源 ID",
+          "location": "path",
+          "required": true
+        },
+        "include_details": {
+          "type": "boolean",
+          "description": "是否包含详细信息",
+          "location": "query",
+          "required": false
+        }
+      },
+      "responseMapping": {
+        "id": "$.data.id",
+        "name": "$.data.name",
+        "details": "$.data.details"
+      }
+    },
+    {
+      "toolName": "example_post_request",
+      "description": "POST 请求示例 - 创建资源",
+      "httpMethod": "POST",
+      "httpPath": "/api/resource",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "description": "资源名称",
+          "location": "body",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "资源描述",
+          "location": "body",
+          "required": false
+        },
+        "tags": {
+          "type": "array",
+          "description": "标签列表",
+          "location": "body",
+          "required": false
+        },
+        "metadata": {
+          "type": "object",
+          "description": "元数据对象",
+          "location": "body",
+          "required": false
+        }
+      },
+      "responseMapping": {
+        "id": "$.data.id",
+        "success": "$.success",
+        "message": "$.message"
+      }
+    },
+    {
+      "toolName": "example_put_request",
+      "description": "PUT 请求示例 - 更新资源",
+      "httpMethod": "PUT",
+      "httpPath": "/api/resource/{id}",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "description": "资�� ID",
+          "location": "path",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "新的资源名称",
+          "location": "body",
+          "required": false
+        },
+        "status": {
+          "type": "string",
+          "description": "资源状态",
+          "location": "body",
+          "required": false
+        }
+      },
+      "responseMapping": {
+        "updated": "$.data.updated",
+        "resource": "$.data.resource"
+      }
+    },
+    {
+      "toolName": "example_delete_request",
+      "description": "DELETE 请求示例 - 删除资源",
+      "httpMethod": "DELETE",
+      "httpPath": "/api/resource/{id}",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "description": "要删除的资源 ID",
+          "location": "path",
+          "required": true
+        },
+        "force": {
+          "type": "boolean",
+          "description": "是否强制删除",
+          "location": "query",
+          "required": false
+        }
+      },
+      "responseMapping": {
+        "success": "$.success",
+        "deleted_id": "$.data.id"
+      }
+    },
+    {
+      "toolName": "example_with_auth",
+      "description": "带认证的请求示例",
+      "httpMethod": "GET",
+      "httpPath": "/api/protected/data",
+      "parameters": {
+        "api_key": {
+          "type": "string",
+          "description": "API 密钥",
+          "location": "header",
+          "required": true
+        },
+        "user_id": {
+          "type": "string",
+          "description": "用户 ID",
+          "location": "query",
+          "required": true
+        }
+      },
+      "responseMapping": {
+        "data": "$.data",
+        "user": "$.user"
+      }
+    },
+    {
+      "toolName": "example_complex_response",
+      "description": "复杂响应映射示例",
+      "httpMethod": "GET",
+      "httpPath": "/api/complex",
+      "parameters": {},
+      "responseMapping": {
+        "first_item": "$.data.items[0]",
+        "all_names": "$.data.items[*].name",
+        "active_items": "$.data.items[?(@.status=='active')]",
+        "nested_value": "$.data.user.profile.email",
+        "count": "$.data.total"
+      }
+    }
+  ],
+  "headers": {
+    "Content-Type": "application/json",
+    "User-Agent": "MCP-Market/1.0",
+    "X-API-Key": "YOUR_API_KEY_HERE"
+  },
+  "configuration_guide": {
+    "step1_base_url": {
+      "description": "设置 API 的基础 URL",
+      "example": "https://api.example.com/v1"
+    },
+    "step2_headers": {
+      "description": "配置全局 HTTP 头部",
+      "common_headers": {
+        "Authorization": "Bearer YOUR_TOKEN",
+        "X-API-Key": "YOUR_API_KEY",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      }
+    },
+    "step3_tools": {
+      "description": "为每个 API 端点创建工具配置",
+      "fields": {
+        "toolName": "工具名称（使用下划线命名法）",
+        "description": "工具的详细描述",
+        "httpMethod": "HTTP 方法: GET, POST, PUT, DELETE, PATCH",
+        "httpPath": "API 路径，支持 {param} 占位符",
+        "parameters": "参数定义对象",
+        "responseMapping": "响应数据映射（使用 JSONPath）"
+      }
+    },
+    "step4_parameters": {
+      "description": "定义工具参数",
+      "parameter_fields": {
+        "type": "参数类型: string, number, boolean, array, object",
+        "description": "参数描述",
+        "location": "参数位置: path, query, body, header",
+        "required": "是否必需: true, false"
+      },
+      "location_examples": {
+        "path": "URL 路径参数 /api/users/{userId}",
+        "query": "URL 查询参数 /api/users?name=john",
+        "body": "请求体参数（POST/PUT）",
+        "header": "HTTP 头部参数"
+      }
+    },
+    "step5_response_mapping": {
+      "description": "使用 JSONPath 提取响应数据",
+      "jsonpath_examples": {
+        "$.data": "提取根对象的 data 字段",
+        "$.data.items[0]": "提取数组第一个元素",
+        "$.data.items[*].name": "提取所有元素的 name 字段",
+        "$.data.items[?(@.status=='active')]": "条件过滤",
+        "$.data.user.profile.email": "嵌套对象提取"
+      }
+    }
+  },
+  "parameter_types": {
+    "string": {
+      "description": "字符串类型",
+      "example": "hello world"
+    },
+    "number": {
+      "description": "数字类型",
+      "example": 42
+    },
+    "boolean": {
+      "description": "布尔类型",
+      "example": true
+    },
+    "array": {
+      "description": "数组类型",
+      "example": ["item1", "item2", "item3"]
+    },
+    "object": {
+      "description": "对象类型",
+      "example": {
+        "key1": "value1",
+        "key2": "value2"
+      }
+    }
+  },
+  "best_practices": [
+    "使用清晰的工具命名（动词+名词，如 get_user, create_order）",
+    "提供详细的描述，帮助 AI 理解工具用途",
+    "只暴露必要的参数，避免过度复杂",
+    "使用精确的 JSONPath 表达式，只提取需要的数据",
+    "为敏感 API 配置适当的认证头部",
+    "考虑 API 的速率限制和错误处理",
+    "测试所有工具配置，确保正确工作"
+  ],
+  "testing": {
+    "steps": [
+      "1. 在 MCP Market 中创建 HTTP 类型的服务器",
+      "2. 填写 baseUrl 和 headers",
+      "3. 点击'配置映射'按钮",
+      "4. 逐个添加工具配置",
+      "5. 使用'交互式测试'功能测试每个工具",
+      "6. 检查返回的数据是否符合预期"
+    ]
+  },
+  "troubleshooting": {
+    "common_issues": [
+      {
+        "issue": "工具调用失败",
+        "solutions": [
+          "检查 baseUrl 是否正确",
+          "验证 API 是否可访问",
+          "确认认证信息是否有效",
+          "查看 API 的错误响应"
+        ]
+      },
+      {
+        "issue": "响应数据为空",
+        "solutions": [
+          "检查 JSONPath 表达式是否正确",
+          "使用 JSONPath 在线工具测试表达式",
+          "查看 API 实际返回的数据结构",
+          "确认字段名称大小写是否匹配"
+        ]
+      },
+      {
+        "issue": "参数传递错误",
+        "solutions": [
+          "确认 location 设置正确（path/query/body/header）",
+          "检查参数类型是否匹配",
+          "验证必需参数是否都已提供"
+        ]
+      }
+    ]
+  },
+  "resources": [
+    "JSONPath 在线测试: https://jsonpath.com/",
+    "JSONPath 语法: https://goessner.net/articles/JsonPath/",
+    "HTTP 方法说明: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods",
+    "MCP 协议文档: https://modelcontextprotocol.io/"
+  ]
+}
