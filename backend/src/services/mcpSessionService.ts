@@ -1,14 +1,15 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { randomUUID } from 'crypto';
-import type { ConnectionConfig } from '../types/mcp.js';
+import type { ConnectionConfig, HttpConfig, SseConfig, StdioConfig } from '../types/mcp.js';
 
 interface Session {
   id: string;
   serverId: number;
   client: Client;
-  transport: SSEClientTransport | StdioClientTransport;
+  transport: SSEClientTransport | StdioClientTransport | StreamableHTTPClientTransport;
   createdAt: Date;
   lastActivityAt: Date;
 }
@@ -64,20 +65,26 @@ export class McpSessionService {
       }
     );
 
-    let transport: SSEClientTransport | StdioClientTransport;
+    let transport: SSEClientTransport | StdioClientTransport | StreamableHTTPClientTransport;
 
     try {
-      if (connectionConfig.type === 'sse' || connectionConfig.type === 'http') {
-        const url = new URL(connectionConfig.url);
+      if (connectionConfig.type === 'sse') {
+        const config = connectionConfig as SseConfig;
+        const url = new URL(config.url);
         transport = new SSEClientTransport(url);
+      } else if (connectionConfig.type === 'http') {
+        const config = connectionConfig as HttpConfig;
+        const url = new URL(config.url);
+        transport = new StreamableHTTPClientTransport(url);
       } else if (connectionConfig.type === 'stdio') {
+        const config = connectionConfig as StdioConfig;
         transport = new StdioClientTransport({
-          command: connectionConfig.command,
-          args: connectionConfig.args || [],
-          env: connectionConfig.env,
+          command: config.command,
+          args: config.args || [],
+          env: config.env,
         });
       } else {
-        throw new Error(`Unsupported connection type: ${connectionConfig.type}`);
+        throw new Error(`Unsupported connection type: ${(connectionConfig as any).type}`);
       }
 
       await client.connect(transport);

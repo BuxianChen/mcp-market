@@ -1,6 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { ConnectionConfig, McpTestResult } from '../types/mcp';
 
 export class McpTestService {
@@ -20,6 +21,8 @@ export class McpTestService {
 
       if (config.type === 'sse') {
         transport = new SSEClientTransport(new URL(config.url));
+      } else if (config.type === 'http') {
+        transport = new StreamableHTTPClientTransport(new URL(config.url));
       } else if (config.type === 'stdio') {
         transport = new StdioClientTransport({
           command: config.command,
@@ -27,8 +30,7 @@ export class McpTestService {
           env: config.env
         });
       } else {
-        // HTTP 类型暂时使用 SSE transport（MCP SDK 主要支持 SSE 和 stdio）
-        transport = new SSEClientTransport(new URL(config.url));
+        throw new Error(`Unsupported connection type: ${(config as any).type}`);
       }
 
       // 设置超时
