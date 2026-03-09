@@ -5,9 +5,9 @@
 最简单的 python 的 streamable-http server 和 client 例子:
 
 ```bash
-cd verified_examples/mcp-servers/python/streamable-http/simple-task && python -m mcp_simple_task
+cd verified_examples/mcp-servers/python/streamable-http/simple-streamablehttp && python -m mcp_simple_streamablehttp --port 8000
 
-cd verified_examples/mcp-clients/python/streamable-http/simple-task-client && python -m mcp_simple_task_client
+cd verified_examples/mcp-clients/python/streamable-http/simple-streamablehttp-client && python main.py
 ```
 
 
