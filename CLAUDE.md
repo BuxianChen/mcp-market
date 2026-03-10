@@ -33,9 +33,12 @@ This project uses **frontend-backend separation** architecture:
 - Backend: `cd backend && npm run dev` (runs on port 3000)
 - Frontend: `cd frontend && npm run dev` (runs on port 5173)
 
-Do not Modify or Read:
+## Ignored Files
+
+Do not Modify or Read the following
 
 NOTE.md
+drafts/*
 
 Rules:
-1. Ignore the content in NOTE.md, do not modify or delete NOTE.md
+1. Ignore the content, do not modify or delete these files

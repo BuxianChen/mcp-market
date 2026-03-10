@@ -163,6 +163,69 @@ Agent Runtime Layer 是 cline 插件的 应用运行数据目录
 ~/.vscode-server/extensions/saoudrizwan.claude-dev-3.70.0/package.json
 ```
 
+## mcp python-sdk
+
+```python
+from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("Echo Server")
+@mcp.tool()
+def echo(text: str) -> str:
+    """Echo the input text"""
+    return text
+if __name__ == "__main__":
+    mcp.run()
+```
+
+mcp.server.fastmcp.FastMCP 作为高级接口, 其实质用的是底层的 mcp.server.lowlevel.server.Server
+
+
+```python
+from mcp.server.lowlevel.server import Server as MCPServer
+
+class FastMCP:
+    def __init__(...):
+        self._mcp_server = MCPServer(
+            name=name or "FastMCP",
+            instructions=instructions,
+            website_url=website_url,
+            icons=icons,
+            # TODO(Marcelo): It seems there's a type mismatch between the lifespan type from an FastMCP and Server.
+            # We need to create a Lifespan type that is a generic on the server type, like Starlette does.
+            lifespan=(lifespan_wrapper(self, self.settings.lifespan) if self.settings.lifespan else default_lifespan),  # type: ignore
+        )
+    def run(
+        self,
+        transport: Literal["stdio", "sse", "streamable-http"] = "stdio",
+        mount_path: str | None = None,
+    ) -> None:
+        """Run the FastMCP server. Note this is a synchronous function.
+
+        Args:
+            transport: Transport protocol to use ("stdio", "sse", or "streamable-http")
+            mount_path: Optional mount path for SSE transport
+        """
+        TRANSPORTS = Literal["stdio", "sse", "streamable-http"]
+        if transport not in TRANSPORTS.__args__:  # type: ignore  # pragma: no cover
+            raise ValueError(f"Unknown transport: {transport}")
+
+        match transport:
+            case "stdio":
+                anyio.run(self.run_stdio_async)
+            case "sse":  # pragma: no cover
+                anyio.run(lambda: self.run_sse_async(mount_path))
+            case "streamable-http":  # pragma: no cover
+                anyio.run(self.run_streamable_http_async)
+
+    async def run_stdio_async(self) -> None:
+        """Run the server using stdio transport."""
+        async with stdio_server() as (read_stream, write_stream):
+            await self._mcp_server.run(
+                read_stream,
+                write_stream,
+                self._mcp_server.create_initialization_options(),
+            )
+```
+
 ## Prompt
 
 帮我重新审视下这个项目，先暂时忽略examples目录和NOTE.md。

@@ -18,9 +18,8 @@ async def run(url: str) -> None:
             print(f"Available tools: {[t.name for t in tools.tools]}")
 
             # Call the tool as a task
-            print("\nCalling tool as a task...")
+            print("\nCalling tool")
 
-            
             tool_name = tools.tools[0].name
             print(f"\nCalling tool: {tool_name}")
             result = await session.call_tool(
