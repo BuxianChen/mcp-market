@@ -1,6 +1,7 @@
 import anyio
 import logging
 from mcp.server.fastmcp import FastMCP, Context
+from starlette.middleware.cors import CORSMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,30 @@ async def start_notification_stream(
     return f"Sent {count} notifications with {interval}s interval"
 
 
-if __name__ == "__main__":
-    mcp.run(
-        transport="streamable-http",
+async def run_streamable_http_async(mcp) -> None:  # pragma: no cover
+    """Run the server using StreamableHTTP transport."""
+    import uvicorn
+
+    starlette_app = mcp.streamable_http_app()
+
+    starlette_app = CORSMiddleware(
+        starlette_app,
+        allow_origins=["*"],  # Allow all origins - adjust as needed for production
+        allow_credentials=True,
+        allow_methods=["*"],  # MCP streamable HTTP methods
+        allow_headers=["*"],
+        expose_headers=["Mcp-Session-Id"],
     )
+
+    config = uvicorn.Config(
+        starlette_app,
+        host=mcp.settings.host,
+        port=mcp.settings.port,
+        log_level=mcp.settings.log_level.lower(),
+    )
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+if __name__ == "__main__":
+    anyio.run(run_streamable_http_async, mcp)
