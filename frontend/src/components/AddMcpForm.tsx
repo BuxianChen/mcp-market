@@ -20,6 +20,7 @@ export const AddMcpForm: React.FC<AddMcpFormProps> = ({ onSubmit, onCancel, edit
   const [args, setArgs] = useState(
     editingMcp?.connection_config.type === 'stdio' ? editingMcp?.connection_config.args?.join(' ') || '' : ''
   );
+  const [pathPrefix, setPathPrefix] = useState(editingMcp?.path_prefix || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +44,8 @@ export const AddMcpForm: React.FC<AddMcpFormProps> = ({ onSubmit, onCancel, edit
       name,
       description: description || undefined,
       connection_type: connectionType,
-      connection_config
+      connection_config,
+      path_prefix: pathPrefix || undefined
     });
   };
 
@@ -98,19 +100,43 @@ export const AddMcpForm: React.FC<AddMcpFormProps> = ({ onSubmit, onCancel, edit
               </div>
 
               {connectionType !== 'stdio' ? (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    URL *
-                  </label>
-                  <input
-                    type="url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="http://localhost:3001/mcp"
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      URL *
+                    </label>
+                    <input
+                      type="url"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      placeholder="http://localhost:3001/mcp"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      路径前缀（可选）
+                    </label>
+                    <input
+                      type="text"
+                      value={pathPrefix}
+                      onChange={(e) => setPathPrefix(e.target.value.toLowerCase())}
+                      placeholder="weather"
+                      pattern="^[a-z0-9-]*$"
+                      minLength={3}
+                      maxLength={50}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      用于生成代理地址，如：http://your-server:4000/{pathPrefix || 'prefix'}/mcp
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      仅支持小写字母、数字和连字符���长度 3-50 字符
+                    </p>
+                  </div>
+                </>
               ) : (
                 <>
                   <div>

@@ -18,14 +18,19 @@ class McpService:
         row = db.fetchone("SELECT * FROM mcp_servers WHERE id = ?", (server_id,))
         return self._row_to_server(row) if row else None
 
+    def get_by_path_prefix(self, path_prefix: str) -> Optional[McpServer]:
+        """Get MCP server by path prefix"""
+        row = db.fetchone("SELECT * FROM mcp_servers WHERE path_prefix = ?", (path_prefix,))
+        return self._row_to_server(row) if row else None
+
     def create(self, server: McpServerCreate) -> McpServer:
         """Create new MCP server"""
         connection_config_json = server.connection_config.model_dump_json()
 
         cursor = db.execute(
             """
-            INSERT INTO mcp_servers (name, description, connection_type, connection_config, status)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO mcp_servers (name, description, connection_type, connection_config, status, path_prefix)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
                 server.name,
@@ -33,6 +38,7 @@ class McpService:
                 server.connection_type.value,
                 connection_config_json,
                 server.status.value,
+                server.path_prefix,
             ),
         )
         db.commit()
@@ -72,6 +78,10 @@ class McpService:
             updates.append("status = ?")
             params.append(update.status.value)
 
+        if update.path_prefix is not None:
+            updates.append("path_prefix = ?")
+            params.append(update.path_prefix)
+
         if not updates:
             return existing
 
@@ -100,6 +110,7 @@ class McpService:
             connection_type=row["connection_type"],
             connection_config=connection_config,
             status=row["status"],
+            path_prefix=row.get("path_prefix"),
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )

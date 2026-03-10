@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.routes import mcp, proxy
+from src.routes import mcp, proxy, proxy_path
 from src.services.mcp_session_service import mcp_session_service
 
 
@@ -38,11 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(mcp.router)
-app.include_router(proxy.router)
-
-
+# Define root and health endpoints BEFORE including routers
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -53,6 +49,12 @@ async def root():
 async def health():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+
+# Include routers (order matters: specific routes first, wildcard routes last)
+app.include_router(mcp.router)
+app.include_router(proxy.router)
+app.include_router(proxy_path.router)  # Must be last - catches all remaining paths
 
 
 if __name__ == "__main__":

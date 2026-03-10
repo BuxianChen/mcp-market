@@ -46,6 +46,7 @@ class McpServerBase(BaseModel):
     connection_type: ConnectionType
     connection_config: ConnectionConfig
     status: ServerStatus = ServerStatus.ACTIVE
+    path_prefix: Optional[str] = Field(None, pattern=r'^[a-z0-9-]+$', min_length=3, max_length=50)
 
 
 class McpServerCreate(McpServerBase):
@@ -58,6 +59,7 @@ class McpServerUpdate(BaseModel):
     connection_type: Optional[ConnectionType] = None
     connection_config: Optional[ConnectionConfig] = None
     status: Optional[ServerStatus] = None
+    path_prefix: Optional[str] = Field(None, pattern=r'^[a-z0-9-]+$', min_length=3, max_length=50)
 
 
 class McpServer(McpServerBase):

@@ -29,6 +29,7 @@ GET /api/mcps
       "args": ["weather-server.js"],
       "env": {}
     },
+    "path_prefix": "weather",
     "created_at": "2024-01-01T00:00:00Z",
     "updated_at": "2024-01-01T00:00:00Z"
   }
@@ -77,9 +78,17 @@ POST /api/mcps
     "command": "node",
     "args": ["weather-server.js"],
     "env": {}
-  }
+  },
+  "path_prefix": "weather"
 }
 ```
+
+**path_prefix 说明：**
+- 可选字段，用于生成代理地址
+- 格式：仅支持小写字母、数字和连字符，长度 3-50 字符
+- 必须全局唯一
+- 示例：设置 `path_prefix: "weather"` 后，可通过 `http://localhost:3000/weather/mcp` 访问该服务
+- 仅对 `http` 和 `sse` 类型有效（stdio 类型不支持路径代理）
 
 **连接类型说明：**
 
@@ -402,9 +411,75 @@ POST /api/mcps/{id}/sessions/{session_id}/prompts/get
 }
 ```
 
-### 5. 代理转发（可选）
+### 5. 路径代理（Path-based Proxy）
 
-#### 5.1 代理 MCP 请求
+#### 5.1 通过路径前缀代理请求
+
+```
+ANY /{path_prefix}/{path}
+```
+
+**说明：**
+- 通过 `path_prefix` 将请求代理到对应的 MCP Server
+- 支持所有 HTTP 方法（GET, POST, PUT, DELETE, PATCH, OPTIONS）
+- 仅支持 `http` 和 `sse` 类型的服务器
+- 自动转发请求头、请求体、查询参数
+
+**路径参数：**
+- `path_prefix` (string): MCP Server 的路径前缀
+- `path` (string): 剩余路径，将附加到目标 URL
+
+**示例：**
+
+假设创建了以下 MCP Server：
+```json
+{
+  "name": "Weather Server",
+  "connection_type": "http",
+  "connection_config": {
+    "url": "http://10.23.56.64:8000/mcp"
+  },
+  "path_prefix": "weather"
+}
+```
+
+则可以通过以下方式访问：
+```bash
+# 原始地址: http://10.23.56.64:8000/mcp
+# 代理地址: http://localhost:3000/weather/mcp
+
+curl http://localhost:3000/weather/mcp \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "initialize"}'
+```
+
+**错误响应：**
+
+路径前缀不存在：
+```json
+{
+  "detail": "No MCP server found for path prefix: weather"
+}
+```
+
+不支持的服务器类型：
+```json
+{
+  "detail": "Path-based proxy only supports http/sse servers, but server 'XXX' is type: stdio"
+}
+```
+
+上游服务器连接失败：
+```json
+{
+  "detail": "Failed to connect to upstream server: Connection refused"
+}
+```
+
+### 6. Token 认证代理（可选）
+
+#### 6.1 代理 MCP 请求
 
 ```
 POST /api/proxy/{mcp_id}
@@ -475,6 +550,7 @@ POST /api/proxy/{mcp_id}
   description?: string;
   connection_type: "stdio" | "sse" | "http";
   connection_config: StdioConfig | SseConfig | HttpConfig;
+  path_prefix?: string;  // 路径前缀，用于代理路由
   created_at: string;
   updated_at: string;
 }

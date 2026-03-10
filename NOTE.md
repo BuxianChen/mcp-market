@@ -68,6 +68,32 @@ app.add_middleware(
 ```
 
 
+
+```bash
+curl -s http://localhost:8000/mcp -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","id":1,"method":"initialize"}'
+
+
+
+curl -N http://localhost:8000/mcp \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc":"2.0",
+    "id":1,
+    "method":"initialize",
+    "params":{
+      "protocolVersion":"2025-03-26",
+      "capabilities":{},
+      "clientInfo":{
+        "name":"curl-client",
+        "version":"1.0.0"
+      }
+    }
+  }'
+```
+
+
 ## Higress
 
 已操作的部分:
@@ -252,3 +278,17 @@ class FastMCP:
 (3) 目前平台应该还没支持地址转换功能, 也不支持 HTTP 服务自动转化为 MCP server 的功能, 请实现
 
 (4) 请帮我规划 examples 目录, 我计划放入一些 MCP server 的例子, 服务本身可以是 Restful 服务或者是已经按 MCP server 协议部署的服务, 另外还需要一些 MCP Client/MCP Host 的例子, 例如直接通过 MCP Client SDK 连接, 或者使用一些支持 MCP 的 AI Agent, 帮我大致规划一下 examples 目录结构
+
+
+
+
+
+# TODO
+
+RESERVED_PREFIXES = {"api", "admin", "proxy", "health", "docs", "redoc", "openapi.json"}
+
+
+为了避免这个前缀问题，看看是不是可以再加一个类似这样的http://localhost:3000/proxy/time/mcp
+是不是可以避免和服务本身的其他地址冲突，也可以换成别的，前缀不一定是 proxy。考虑到有两种代理方式：
+
+接口提供方本身就按照mcp server写的，还有接口提供方不按照 mcp server 写的，也可以区分用不同的固定前缀，先给下建议

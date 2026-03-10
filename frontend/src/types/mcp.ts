@@ -31,6 +31,7 @@ export interface McpServer {
   connection_type: ConnectionType;
   connection_config: ConnectionConfig;
   status: McpStatus;
+  path_prefix?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +42,7 @@ export interface CreateMcpServerInput {
   connection_type: ConnectionType;
   connection_config: ConnectionConfig;
   status?: McpStatus;
+  path_prefix?: string;
 }
 
 export interface McpTestResult {

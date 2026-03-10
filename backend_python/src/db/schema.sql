@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS mcp_servers (
   connection_type TEXT NOT NULL CHECK(connection_type IN ('http', 'stdio', 'sse')),
   connection_config TEXT NOT NULL,
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+  path_prefix TEXT UNIQUE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -71,3 +72,4 @@ CREATE INDEX IF NOT EXISTS idx_access_logs_server_id ON mcp_access_logs(server_i
 CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON mcp_access_logs(timestamp);
 CREATE INDEX IF NOT EXISTS idx_access_tokens_server_id ON mcp_access_tokens(server_id);
 CREATE INDEX IF NOT EXISTS idx_http_mappings_server_id ON http_to_mcp_mappings(server_id);
+CREATE INDEX IF NOT EXISTS idx_mcp_servers_path_prefix ON mcp_servers(path_prefix);
