@@ -292,3 +292,15 @@ RESERVED_PREFIXES = {"api", "admin", "proxy", "health", "docs", "redoc", "openap
 是不是可以避免和服务本身的其他地址冲突，也可以换成别的，前缀不一定是 proxy。考虑到有两种代理方式：
 
 接口提供方本身就按照mcp server写的，还有接口提供方不按照 mcp server 写的，也可以区分用不同的固定前缀，先给下建议
+
+# 服务启动
+
+```bash
+cd frontend
+npm run dev
+
+
+cd backend_python
+source .venv/bin/activate
+uvicorn src.main:app --host 0.0.0.0 --port 3000
+```

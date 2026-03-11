@@ -27,68 +27,72 @@ export const InteractiveTester: React.FC<InteractiveTesterProps> = ({ server, on
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
 
   useEffect(() => {
-    initSession();
-    return () => {
-      if (session) {
-        mcpApi.closeSession(server.id, session.id).catch(console.error);
+    let sessionId: string | null = null;
+
+    const loadCapabilities = async (sid: string) => {
+      try {
+        // Load tools
+        const testResult = await mcpApi.testMcp(server.id);
+        if (testResult.capabilities?.tools) {
+          setTools(testResult.capabilities.tools);
+          if (testResult.capabilities.tools.length > 0) {
+            setSelectedTool(testResult.capabilities.tools[0]);
+          }
+        }
+
+        // Load resources
+        try {
+          const resourceList = await mcpApi.listResources(server.id, sid);
+          setResources(resourceList);
+          if (resourceList.length > 0) {
+            setSelectedResource(resourceList[0]);
+          }
+        } catch (err) {
+          console.error('Failed to load resources:', err);
+        }
+
+        // Load prompts
+        try {
+          const promptList = await mcpApi.listPrompts(server.id, sid);
+          setPrompts(promptList);
+          if (promptList.length > 0) {
+            setSelectedPrompt(promptList[0]);
+          }
+        } catch (err) {
+          console.error('Failed to load prompts:', err);
+        }
+      } catch (err) {
+        console.error('Failed to load capabilities:', err);
       }
     };
-  }, []);
 
-  const initSession = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Create session
-      const sessionInfo = await mcpApi.createSession(server.id);
-      setSession(sessionInfo);
-
-      // Load capabilities
-      await loadCapabilities(sessionInfo.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create session');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadCapabilities = async (sessionId: string) => {
-    try {
-      // Load tools
-      const testResult = await mcpApi.testMcp(server.id);
-      if (testResult.capabilities?.tools) {
-        setTools(testResult.capabilities.tools);
-        if (testResult.capabilities.tools.length > 0) {
-          setSelectedTool(testResult.capabilities.tools[0]);
-        }
-      }
-
-      // Load resources
+    const init = async () => {
       try {
-        const resourceList = await mcpApi.listResources(server.id, sessionId);
-        setResources(resourceList);
-        if (resourceList.length > 0) {
-          setSelectedResource(resourceList[0]);
-        }
-      } catch (err) {
-        console.error('Failed to load resources:', err);
-      }
+        setLoading(true);
+        setError(null);
 
-      // Load prompts
-      try {
-        const promptList = await mcpApi.listPrompts(server.id, sessionId);
-        setPrompts(promptList);
-        if (promptList.length > 0) {
-          setSelectedPrompt(promptList[0]);
-        }
+        // Create session
+        const sessionInfo = await mcpApi.createSession(server.id);
+        sessionId = sessionInfo.id;
+        setSession(sessionInfo);
+
+        // Load capabilities
+        await loadCapabilities(sessionInfo.id);
       } catch (err) {
-        console.error('Failed to load prompts:', err);
+        setError(err instanceof Error ? err.message : 'Failed to create session');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load capabilities:', err);
-    }
-  };
+    };
+
+    init();
+
+    return () => {
+      if (sessionId) {
+        mcpApi.closeSession(server.id, sessionId).catch(console.error);
+      }
+    };
+  }, [server.id]);
 
   const handleClose = async () => {
     if (session) {

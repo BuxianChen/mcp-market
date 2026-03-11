@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import AsyncExitStack
 from datetime import datetime
 from typing import Any, Optional
 from uuid import uuid4
@@ -19,14 +20,12 @@ class Session:
         session_id: str,
         server_id: int,
         client_session: ClientSession,
-        read_stream: Any,
-        write_stream: Any,
+        exit_stack: AsyncExitStack,
     ):
         self.id = session_id
         self.server_id = server_id
         self.client_session = client_session
-        self.read_stream = read_stream
-        self.write_stream = write_stream
+        self.exit_stack = exit_stack
         self.created_at = datetime.now()
         self.last_activity_at = datetime.now()
 
@@ -78,37 +77,41 @@ class McpSessionService:
             raise RuntimeError(f"Maximum {self.MAX_SESSIONS_PER_SERVER} sessions per server reached")
 
         session_id = str(uuid4())
+        exit_stack = AsyncExitStack()
 
         try:
+            # Enter the transport context manager
             if isinstance(config, SseConfig):
-                read_stream, write_stream = sse_client(config.url)
+                read_stream, write_stream = await exit_stack.enter_async_context(sse_client(config.url))
             elif isinstance(config, HttpConfig):
-                read_stream, write_stream = streamable_http_client(config.url)
+                read_stream, write_stream, _ = await exit_stack.enter_async_context(streamable_http_client(config.url))
             elif isinstance(config, StdioConfig):
                 server_params = StdioServerParameters(
                     command=config.command,
                     args=config.args or [],
                     env=config.env,
                 )
-                read_stream, write_stream = stdio_client(server_params)
+                read_stream, write_stream = await exit_stack.enter_async_context(stdio_client(server_params))
             else:
+                await exit_stack.aclose()
                 raise ValueError(f"Unsupported connection type: {type(config)}")
 
-            async with ClientSession(read_stream, write_stream) as client_session:
-                await client_session.initialize()
+            # Enter the ClientSession context manager
+            client_session = await exit_stack.enter_async_context(ClientSession(read_stream, write_stream))
+            await client_session.initialize()
 
-                session = Session(
-                    session_id=session_id,
-                    server_id=server_id,
-                    client_session=client_session,
-                    read_stream=read_stream,
-                    write_stream=write_stream,
-                )
+            session = Session(
+                session_id=session_id,
+                server_id=server_id,
+                client_session=client_session,
+                exit_stack=exit_stack,
+            )
 
-                self.sessions[session_id] = session
-                return session_id
+            self.sessions[session_id] = session
+            return session_id
 
         except Exception as e:
+            await exit_stack.aclose()
             raise RuntimeError(f"Failed to create session: {str(e)}")
 
     async def close_session(self, session_id: str):
@@ -118,11 +121,8 @@ class McpSessionService:
             raise ValueError("Session not found")
 
         try:
-            # Close streams
-            if hasattr(session.write_stream, "close"):
-                await session.write_stream.close()
-            if hasattr(session.read_stream, "close"):
-                await session.read_stream.close()
+            # Close the exit stack, which will properly close all context managers
+            await session.exit_stack.aclose()
         except Exception as e:
             print(f"Error closing session: {e}")
         finally:

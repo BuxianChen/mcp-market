@@ -33,7 +33,7 @@ class McpTestService:
                     async with sse_client(config.url) as (read_stream, write_stream):
                         return await self._test_with_streams(read_stream, write_stream)
                 elif isinstance(config, HttpConfig):
-                    async with streamable_http_client(config.url) as (read_stream, write_stream):
+                    async with streamable_http_client(config.url) as (read_stream, write_stream, _):
                         return await self._test_with_streams(read_stream, write_stream)
                 elif isinstance(config, StdioConfig):
                     server_params = StdioServerParameters(

@@ -14,31 +14,33 @@
 ## 技术栈
 
 - 前端：React 18 + TypeScript + Vite + TailwindCSS
-- 后端：Node.js + Express + TypeScript
+- 后端：Python 3.11+ + FastAPI + Uvicorn
 - 数据库：SQLite
-- MCP SDK: @modelcontextprotocol/sdk ^1.27.1
+- MCP SDK: mcp (Python SDK)
 
 ## 架构说明
 
 本项目采用**前后端分离**架构：
 
-- `backend/` - 独立的后端服务，有自己的 node_modules
-- `frontend/` - 独立的前端应用，有自己的 node_modules
-- 不使用 npm workspaces，前后端可独立部署
+- `backend_python/` - Python FastAPI 后端服务
+- `frontend/` - React 前端应用
+- 前后端可独立部署
 
 ## 快速开始
 
 ### 安装依赖
 
-前后端需要分别安装依赖：
-
+**后端依赖**：
 ```bash
-# 安装后端依赖
-cd backend
-npm install
+cd backend_python
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-# 安装前端依赖
-cd ../frontend
+**前端依赖**：
+```bash
+cd frontend
 npm install
 ```
 
@@ -46,8 +48,9 @@ npm install
 
 **后端服务**（端口 3000）：
 ```bash
-cd backend
-npm run dev
+cd backend_python
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload
 ```
 
 **前端服务**（端口 5173）：
@@ -56,14 +59,19 @@ cd frontend
 npm run dev
 ```
 
+### 数据库迁移
+
+首次运行或更新数据库结构时：
+```bash
+cd backend_python
+source .venv/bin/activate
+python src/db/migrate.py mcp_market.db
+```
+
 ### 构建生产版本
 
 ```bash
-# 构建后端
-cd backend
-npm run build
-
-# 构建前端
+# 前端构建
 cd frontend
 npm run build
 ```
@@ -71,135 +79,47 @@ npm run build
 ## 项目结构
 
 ```
+```
 mcp-market/
-├── backend/                    # Express 后端 API
-│   ├── node_modules/          # 后端独立依赖
+├── backend_python/             # FastAPI 后端 API
+│   ├── .venv/                 # Python 虚拟环境
 │   ├── src/
-│   │   ├── controllers/       # 控制器
-│   │   ├── services/          # 业务逻辑
-│   │   │   ├── mcpSessionService.ts      # MCP 会话管理
-│   │   │   ├── mcpProxyService.ts        # MCP 代理服务
-│   │   │   └── httpToMcpAdapter.ts       # HTTP 转 MCP
 │   │   ├── routes/            # 路由
+│   │   │   ├── mcp.py        # MCP CRUD 和测试
+│   │   │   ├── proxy.py      # 代理服务
+│   │   │   └── proxy_path.py # 路径代理
+│   │   ├── services/          # 业务逻辑
+│   │   │   ├── mcp_service.py         # MCP 服务管理
+│   │   │   ├── mcp_session_service.py # 会话管理
+│   │   │   └── mcp_test_service.py    # 连接测试
 │   │   ├── db/                # 数据库
+│   │   │   ├── schema.sql    # 数据库结构
+│   │   │   └── migrate.py    # 迁移脚本
+│   │   ├── types/             # 类型定义
+│   │   └── main.py           # 应用入口
+│   ├── requirements.txt
+│   └── mcp_market.db         # SQLite 数据库
+│
+├── frontend/                   # React 前端应用
+│   ├── src/
+│   │   ├── components/        # React 组件
+│   │   ├── api/               # API 服务
 │   │   └── types/             # 类型定义
 │   └── package.json
 │
-├── frontend/                   # React 前端应用
-│   ├── node_modules/          # 前端独立依赖
-│   ├── src/
-│   │   ├── components/        # React 组件
-│   │   │   ├── InteractiveTester.tsx     # 交互式测试
-│   │   │   ├── TokenManagement.tsx       # Token 管理
-│   │   │   └── HttpMappingConfig.tsx     # HTTP 映射配置
-│   │   ├── pages/             # 页面
-│   │   └── services/          # API 服务
-��   └── package.json
-│
-└── examples/                   # 示例项目
-    ├── 1-mcp-servers/         # MCP 服务器示例
-    │   ├── stdio-server/      # STDIO 服务器
-    │   ├── sse-server/        # SSE 服务器
-    │   └── http-server/       # HTTP 服务器
-    ├── 2-mcp-clients/         # MCP 客户端示例
-    │   ├── python-client/     # Python 客户端
-    │   ├── nodejs-client/     # Node.js 客户端
-    │   └── proxy-client/      # 代理客户端
-    ├── 3-agent-integration/   # Agent 集成示例
-    │   ├── simple-agent/      # 简单 Agent
-    │   ├── deepseek-agent/    # DeepSeek Agent
-    │   └── langchain-agent/   # LangChain Agent
-    └── 4-http-to-mcp/         # HTTP 转 MCP 配置
+└── verified_examples/          # 验证过的示例
+    └── mcp-servers/           # MCP 服务器示例
+```
 ```
 
-## 示例项目
+## 使用说明
 
-查看 [examples/](examples/) 目录获取完整的示例代码和文档。
+### 访问应用
 
-### 1. MCP 服务器示例
-
-- **STDIO Server** - 标准输入输出服务器（Python）
-- **SSE Server** - Server-Sent Events 服务器（Python）
-- **HTTP Server** - Streamable HTTP 服务器（Python）
-
-### 2. MCP 客户端示例
-
-- **Python Client** - 直接连接 MCP 服务器
-- **Node.js Client** - 直接连接 MCP 服务器
-- **Proxy Client** - 通过 MCP Market 代理连接
-
-### 3. Agent 集成示例
-
-- **Simple Agent** - 简单的 Agent 实现（教学示例）
-- **DeepSeek Agent** - 使用 DeepSeek API 的生产级 Agent
-- **LangChain Agent** - LangChain 框架集成
-
-### 4. HTTP 转 MCP
-
-- 天气 API 映射配置
-- GitHub API 映射配置
-- OpenAI API 映射配置
-- 自定义 API 模板
-
-## 完整演示流程
-
-### 1. 启动 MCP 市场平台
-
-```bash
-# 终端 1: 启动后端
-cd backend
-npm run dev
-
-# 终端 2: 启动前端
-cd frontend
-npm run dev
-```
-
-### 2. 启动示例 MCP Server
-
-```bash
-# 使用 STDIO Server
-cd examples/1-mcp-servers/stdio-server/python
-pip install -r requirements.txt
-python src/server.py
-
-# 或使用 HTTP Server
-cd examples/1-mcp-servers/http-server/python
-pip install -r requirements.txt
-python src/server.py
-```
-
-### 3. 在浏览器中测试
-
-1. 打开 http://localhost:5173
-2. 添加 MCP Server：
-   - **STDIO Server**:
-     - 名称: STDIO Example
-     - 类型: STDIO
-     - 命令: python
-     - 参数: ["/path/to/examples/1-mcp-servers/stdio-server/python/src/server.py"]
-
-   - **HTTP Server**:
-     - 名称: HTTP Example
-     - 类型: HTTP
-     - URL: http://localhost:8000
-
-3. 测试连接，查看可用工具
+1. 启动后端和前端服务后，打开浏览器访问 http://localhost:5173
+2. 添加 MCP Server 配置
+3. 测试连接并查看可用工具
 4. 使用交互式测试器调用工具
-
-### 4. 运行 Agent 示例（可选）
-
-```bash
-# Simple Agent
-cd examples/3-agent-integration/simple-agent
-pip install -r requirements.txt
-python src/simple_agent.py
-
-# DeepSeek Agent（需要 API Key）
-cd examples/3-agent-integration/deepseek-agent
-export DEEPSEEK_API_KEY="your-api-key"
-python src/deepseek_agent.py
-```
 
 ## 支持的连接类型
 
@@ -220,53 +140,21 @@ python src/deepseek_agent.py
 
 ## API 文档
 
-### 后端 API
+详细的 API 文档请查看 [backend_python/API.md](backend_python/API.md)
 
-- `GET /api/mcp/servers` - 获取所有 MCP 服务器
-- `POST /api/mcp/servers` - 添加 MCP 服务器
-- `GET /api/mcp/servers/:id` - 获取服务器详情
-- `PUT /api/mcp/servers/:id` - 更新服务器
-- `DELETE /api/mcp/servers/:id` - 删除服务器
-- `POST /api/mcp/test` - 测试服务器连接
+### 主要接口
 
-### 交互式测试 API
+- `GET /api/mcps` - 获取所有 MCP 服务器
+- `POST /api/mcps` - 添加 MCP 服务器
+- `GET /api/mcps/{id}` - 获取服务器详情
+- `PUT /api/mcps/{id}` - 更新服务器
+- `DELETE /api/mcps/{id}` - 删除服务器
+- `POST /api/mcps/{id}/test` - 测试服务器连接
 
-- `POST /api/mcp/sessions` - 创建会话
-- `DELETE /api/mcp/sessions/:id` - 关闭会话
-- `POST /api/mcp/sessions/:id/call-tool` - 调用工具
-- `GET /api/mcp/sessions/:id/resources` - 列出资源
-- `POST /api/mcp/sessions/:id/read-resource` - 读取资源
-- `GET /api/mcp/sessions/:id/prompts` - 列出提示
-- `POST /api/mcp/sessions/:id/get-prompt` - 获取提示
+### 路径代理
 
-### 代理 API
-
-- `POST /api/proxy/tokens` - 创建访问 Token
-- `GET /api/proxy/tokens` - 列出 Token
-- `DELETE /api/proxy/tokens/:id` - 删除 Token
-- `GET /api/proxy/logs` - 查看访问日志
-- `GET /api/proxy/:serverId/*` - 代理请求
-
-### HTTP 转 MCP API
-
-- `GET /api/http-to-mcp/mappings` - 获取映射配置
-- `POST /api/http-to-mcp/mappings` - 创建映射
-- `PUT /api/http-to-mcp/mappings/:id` - 更新映射
-- `DELETE /api/http-to-mcp/mappings/:id` - 删除映射
-
-## 开发指南
-
-### 添加新的传输类型
-
-1. 在 `backend/src/types/mcp.ts` 中添加类型定义
-2. 在 `backend/src/services/mcpSessionService.ts` 中添加传输实现
-3. 在前端添加相应的 UI 配置
-
-### 扩展 HTTP 转 MCP
-
-1. 在 `examples/4-http-to-mcp/` 中创建映射配置
-2. 使用前端的 HTTP 映射配置界面导入
-3. 测试映射是否正确工作
+- `/{path_prefix}/{path:path}` - 通过 path_prefix 代理访问 MCP 服务器
+  - 例如：`http://localhost:3000/weather/mcp` 代理到配置的原始 URL
 
 ## 故障排查
 
@@ -276,17 +164,16 @@ python src/deepseek_agent.py
 - 验证 URL 或命令路径是否正确
 - 查看后端日志获取详细错误信息
 
-### STDIO 服务器无法启动
-
-- 确保 Python 路径正确
-- 检查依赖是否已安装
-- 使用绝对路径而非相对路径
-
 ### 前端无法连接后端
 
 - 确认后端运行在 http://localhost:3000
 - 检查 CORS 配置
 - 查看浏览器控制台错误
+
+### 数据库问题
+
+- 运行迁移脚本：`python src/db/migrate.py mcp_market.db`
+- 检查数据库文件权限
 
 ## 贡献
 
